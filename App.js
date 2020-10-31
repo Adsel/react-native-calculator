@@ -12,6 +12,22 @@ class App extends Component {
       };
       this.buttons = [
                {
+                   id: 19,
+                   action: () => {
+                       this.sqrt();
+                   },
+                   name: '√',
+                   extended: true
+               },
+               {
+                   id: 20,
+                   action: () => {
+                       console.log('x!');
+                   },
+                   name: 'x!',
+                   extended: true
+               },
+               {
                    id: 10,
                    action: () => {
                         this.setState({
@@ -23,11 +39,28 @@ class App extends Component {
                    name: 'AC'
                },
                {
+                   id: 21,
+                   action: () => {
+                       console.log('±');
+                   },
+                   name: '±',
+                   extended: true
+               },
+               {
+                   id: 22,
+                   action: () => {
+                       console.log('%');
+                   },
+                   name: '%',
+                   extended: true
+               },
+               {
                    id: 18,
                    action: () => {
                        console.log('');
                    }, name: '',
-                   size: 2
+                   size: 2,
+                   extended: false
                },
                {
                    id: 11,
@@ -37,30 +70,37 @@ class App extends Component {
                    class: 'operation'
                },
                {
+                   id: 23,
+                   action: () => {
+                       console.log('e^x');
+                   },
+                   name: 'e^x',
+                   extended: true
+               },
+               {
+                   id: 24,
+                   action: () => {
+                       console.log('10^x');
+                   },
+                   name: '10^x',
+                   extended: true
+               },
+               {
                    id: 7,
                    action: () => {
-                       let res;
-                       if(this.state.result === '0') {
-                           console.log('0');
-                           res = '7'
-                       } else {
-                           res = this.state.result + '7'
-                       }
-                       this.setState({
-                            result: res
-                       });
+                        this.setNumber('7');
                    }, name: '7'
                },
                {
                    id: 8,
                    action: () => {
-                       console.log(8)
+                       this.setNumber('8');
                    }, name: '8'
                },
                {
                    id: 9,
                    action: () => {
-                       console.log(9)
+                       this.setNumber('9');
                    }, name: '9'
                },
                {
@@ -71,15 +111,31 @@ class App extends Component {
                    class: 'operation'
                },
                {
+                   id: 25,
+                   action: () => {
+                       console.log('ln');
+                   },
+                   name: 'ln',
+                   extended: true
+               },
+               {
+                   id: 26,
+                   action: () => {
+                       console.log('log10');
+                   },
+                   name: 'log10',
+                   extended: true
+               },
+               {
                    id: 4,
                    action: () => {
-                       console.log('4')
+                       this.setNumber('4');
                    }, name: '4'
                },
                {
                    id: 5,
                    action: () => {
-                       console.log(5)
+                       this.setNumber('5');
                    }, name: '5'
                },
                {
@@ -96,21 +152,37 @@ class App extends Component {
                    class: 'operation'
                },
                {
+                   id: 27,
+                   action: () => {
+                       console.log('e');
+                   },
+                   name: 'e',
+                   extended: true
+               },
+               {
+                   id: 28,
+                   action: () => {
+                       console.log('x^2');
+                   },
+                   name: 'x^2',
+                   extended: true
+               },
+               {
                    id: 1,
                    action: () => {
-                       console.log(1)
+                       this.setNumber('1');
                    }, name: '1'
                },
                {
                    id: 2,
                    action: () => {
-                       console.log(2)
+                       this.setNumber('2');
                    }, name: '2'
                },
                {
                    id: 3,
                    action: () => {
-                       console.log(3)
+                       this.setNumber('3');
                    }, name: '3'
                },
                {
@@ -121,9 +193,25 @@ class App extends Component {
                    class: 'operation'
                },
                {
+                   id: 29,
+                   action: () => {
+                       console.log('π');
+                   },
+                   name: 'π',
+                   extended: true
+               },
+               {
+                   id: 30,
+                   action: () => {
+                       console.log('x^3');
+                   },
+                   name: 'x^3',
+                   extended: true
+               },
+               {
                    id: 0,
                    action: () => {
-                       console.log(0)
+                       this.setNumber('0');
                    }, name: '0',
                    size: 2
                },
@@ -136,11 +224,47 @@ class App extends Component {
                {
                    id: 15,
                    action: () => {
-                       console.log('=')
+                       console.log('=');
+                       this.test();
                    }, name: '=',
                    class: 'operation'
                }
            ];
+    }
+
+    searchDot() {
+        const regex = /[^\w\s]/g;
+
+        if (paragraph.search(regex) != -1) {
+            this.setState({
+                isDot: true
+            });
+        } else {
+            this.setState({
+                isDot: false
+            });
+        }
+    }
+
+    sqrt() {
+        let input = parseInt(this.state.result);
+        this.setState({
+            result: Math.sqrt(input),
+            operations: '√'
+        });
+        searchDot()
+    }
+
+    setNumber(stringNumber) {
+        let res;
+        if(this.state.result === '0') {
+            res = stringNumber
+        } else {
+            res = this.state.result + stringNumber
+        }
+        this.setState({
+            result: res
+        });
     }
 
     getOrientation(){
@@ -163,8 +287,69 @@ class App extends Component {
       this.setState({screen: Dimensions.get('window')});
     }
 
-    setNumber(number) {
-        console.log(number);
+    getPortraitButtons() {
+      return this.buttons.map(button => {
+             if(!button.extended) {
+                if (!button.size) {
+                    if (button.class) {
+                        return <TouchableOpacity key={button.id} onPress={button.action}>
+                            <Text style={this.getStyle().btn, this.getStyle().operation}>
+                                {button.name}
+                            </Text>
+                        </TouchableOpacity>
+                    } else {
+                        return <TouchableOpacity key={button.id} onPress={button.action}>
+                            <Text style={this.getStyle().btn}>
+                                {button.name}
+                            </Text>
+                        </TouchableOpacity>
+                    }
+                } else {
+                    return <TouchableOpacity key={button.id} onPress={button.action}>
+                        <Text style={this.getStyle().btn, this.getStyle().twice}>
+                            {button.name}
+                        </Text>
+                    </TouchableOpacity>
+                }
+           }
+        })
+    }
+
+    getLandscapeButtons() {
+      return this.buttons.map(button => {
+             if(button.extended != false) {
+                if (!button.size) {
+                    if (button.class) {
+                        return <TouchableOpacity key={button.id} onPress={button.action}>
+                            <Text style={this.getStyle().btn, this.getStyle().operation}>
+                                {button.name}
+                            </Text>
+                        </TouchableOpacity>
+                    } else {
+                        return <TouchableOpacity key={button.id} onPress={button.action}>
+                            <Text style={this.getStyle().btn}>
+                                {button.name}
+                            </Text>
+                        </TouchableOpacity>
+                    }
+                } else {
+                    return <TouchableOpacity key={button.id} onPress={button.action}>
+                        <Text style={this.getStyle().btn, this.getStyle().twice}>
+                            {button.name}
+                        </Text>
+                    </TouchableOpacity>
+                }
+           }
+        })
+    }
+
+    getButtons() {
+      if (this.getOrientation() === 'LANDSCAPE') {
+        return this.getLandscapeButtons();
+      } else {
+        return this.getPortraitButtons();
+      }
+
     }
 
     render() {
@@ -177,29 +362,7 @@ class App extends Component {
                 {this.state.operations}
             </Text>
                 {
-                    this.buttons.map(button => {
-                        if (!button.size) {
-                            if (button.class) {
-                                return <TouchableOpacity key={button.id} onPress={button.action}>
-                                    <Text style={this.getStyle().btn, this.getStyle().operation}>
-                                        {button.name}
-                                    </Text>
-                                </TouchableOpacity>
-                            } else {
-                                return <TouchableOpacity key={button.id} onPress={button.action}>
-                                        <Text style={this.getStyle().btn}>
-                                           {button.name}
-                                        </Text>
-                                   </TouchableOpacity>
-                            }
-                        } else {
-                           return <TouchableOpacity key={button.id} onPress={button.action}>
-                                <Text style={this.getStyle().btn, this.getStyle().twice}>
-                                    {button.name}
-                                </Text>
-                            </TouchableOpacity>
-                        }
-                    })
+                    this.getButtons()
                 }
         </View>
         );
@@ -209,6 +372,10 @@ export default App;
 
 const btnWidth = Dimensions.get('window').width / 4;
 const btnHeight = (Dimensions.get('window').height - 24) / 7;
+
+const btnWidthLandscape = Dimensions.get('window').width / 6;
+const btnHeightLandscape = (Dimensions.get('window').height - 24) / 7;
+
 
 const portraitStyles = StyleSheet.create({
   container: {
@@ -284,10 +451,74 @@ const portraitStyles = StyleSheet.create({
 });
 
 const landscapeStyles = StyleSheet.create({
-  container: {
-    flexGrow: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'lime'
-  }
+    container: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      margin: 0,
+      padding: 0,
+      backgroundColor: '#1C1C1C'
+    },
+
+    btn: {
+      backgroundColor: '#505050',
+      width: btnWidthLandscape - 2,
+      height: btnHeightLandscape - 2,
+      textAlign: 'center',
+      fontSize: 30,
+      color: 'white',
+      marginBottom: 2,
+      marginRight: 2
+    },
+
+    twice: {
+      backgroundColor: 'lime',
+      backgroundColor: '#505050',
+      width: 2 * btnWidthLandscape - 2,
+      height: btnHeightLandscape - 2,
+      textAlign: 'center',
+      fontSize: 30,
+      color: 'white',
+      marginBottom: 2,
+      marginRight: 2
+    },
+
+    header: {
+      width: 6 * btnWidthLandscape,
+      textAlign: 'right',
+      paddingRight: 20,
+      backgroundColor: '#1C1C1C',
+      color: 'white',
+      fontWeight: 'bold',
+      height: btnHeightLandscape,
+      fontSize: 30,
+      paddingTop: 20
+    },
+
+    headerSecond: {
+      width: 6 * btnWidthLandscape - 2,
+      textAlign: 'right',
+      paddingRight: 40,
+      backgroundColor: '#1C1C1C',
+      color: 'white',
+      height: btnHeightLandscape - 2,
+      fontSize: 18,
+      marginBottom: 2,
+      marginRight: 2,
+      paddingTop: 20,
+      opacity: 0.3
+    },
+
+    operation: {
+      width: btnWidthLandscape - 2,
+      height: btnHeightLandscape - 2,
+      textAlign: 'center',
+      fontSize: 30,
+      backgroundColor:'#FF9500',
+      color:'white',
+      marginBottom: 2,
+      marginRight: 2
+    }
 })
