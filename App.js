@@ -4,25 +4,34 @@ import { StyleSheet, TouchableOpacity, Text, View, Dimensions } from 'react-nati
 class App extends Component {
     constructor(props) {
       super(props);
+      // STYLES:
+      this.btnWidth = Dimensions.get('window').width / 4;
+      this.btnHeight = (Dimensions.get('window').height - 24) / 7;
+
       this.state = {
         screen: Dimensions.get('window'),
+        operations: '',
         result: '0',
-        operations: 'operations ...',
-        isDot: false
+        isDot: false,
+        firstNumber: '0',
+        isSecond: false,
+        secondNumber: '0',
+        lastOperation: ''
       };
+      // DATA ABOUT ALL BUTTONS:
       this.buttons = [
                {
                    id: 19,
                    action: () => {
-                       this.sqrt();
+                       this.back()
                    },
-                   name: '√',
+                   name: 'del',
                    extended: true
                },
                {
                    id: 20,
                    action: () => {
-                       console.log('x!');
+                       this.countFactorial();
                    },
                    name: 'x!',
                    extended: true
@@ -31,9 +40,12 @@ class App extends Component {
                    id: 10,
                    action: () => {
                         this.setState({
-                            operations: 'operations ...',
+                            operations: '',
                             result: '0',
-                            isDot: false
+                            isDot: false,
+                            currentOperation: '',
+                            secondNumber: '0',
+                            firstNumber: '0'
                         });
                    },
                    name: 'AC'
@@ -41,7 +53,7 @@ class App extends Component {
                {
                    id: 21,
                    action: () => {
-                       console.log('±');
+                       this.negative();
                    },
                    name: '±',
                    extended: true
@@ -49,30 +61,32 @@ class App extends Component {
                {
                    id: 22,
                    action: () => {
-                       console.log('%');
+                       this.enterSecond();
+                       this.changeOperation('%');
                    },
                    name: '%',
                    extended: true
                },
                {
                    id: 18,
-                   action: () => {
-                       console.log('');
-                   }, name: '',
+                   action: () => {},
+                   name: '',
                    size: 2,
                    extended: false
                },
                {
                    id: 11,
                    action: () => {
-                       console.log('/')
-                   }, name: '/',
+                       this.enterSecond();
+                       this.changeOperation('/');
+                   },
+                   name: '/',
                    class: 'operation'
                },
                {
                    id: 23,
                    action: () => {
-                       console.log('e^x');
+                       this.exponential()
                    },
                    name: 'e^x',
                    extended: true
@@ -80,7 +94,7 @@ class App extends Component {
                {
                    id: 24,
                    action: () => {
-                       console.log('10^x');
+                       this.pow10()
                    },
                    name: '10^x',
                    extended: true
@@ -106,14 +120,16 @@ class App extends Component {
                {
                    id: 12,
                    action: () => {
-                       console.log('*')
-                   }, name: '*',
+                       this.enterSecond();
+                       this.changeOperation('*');
+                   },
+                   name: '*',
                    class: 'operation'
                },
                {
                    id: 25,
                    action: () => {
-                       console.log('ln');
+                       this.ln()
                    },
                    name: 'ln',
                    extended: true
@@ -121,7 +137,7 @@ class App extends Component {
                {
                    id: 26,
                    action: () => {
-                       console.log('log10');
+                       this.log()
                    },
                    name: 'log10',
                    extended: true
@@ -141,28 +157,29 @@ class App extends Component {
                {
                    id: 6,
                    action: () => {
-                       console.log(6)
+                       this.setNumber('6');
                    }, name: '6'
                },
                {
                    id: 14,
                    action: () => {
-                       console.log('+')
+                       this.enterSecond();
+                       this.changeOperation('+');
                    }, name: '+',
                    class: 'operation'
                },
                {
                    id: 27,
                    action: () => {
-                       console.log('e');
+                       this.sqrt();
                    },
-                   name: 'e',
+                   name: '√',
                    extended: true
                },
                {
                    id: 28,
                    action: () => {
-                       console.log('x^2');
+                       this.square();
                    },
                    name: 'x^2',
                    extended: true
@@ -188,14 +205,15 @@ class App extends Component {
                {
                    id: 13,
                    action: () => {
-                       console.log('-')
+                       this.enterSecond();
+                       this.changeOperation('-');
                    }, name: '-',
                    class: 'operation'
                },
                {
                    id: 29,
                    action: () => {
-                       console.log('π');
+                       this.pi()
                    },
                    name: 'π',
                    extended: true
@@ -203,7 +221,7 @@ class App extends Component {
                {
                    id: 30,
                    action: () => {
-                       console.log('x^3');
+                       this.cube();
                    },
                    name: 'x^3',
                    extended: true
@@ -218,68 +236,474 @@ class App extends Component {
                {
                    id: 16,
                    action: () => {
-                       console.log('.')
+                       this.addDot()
                    }, name: ','
                },
                {
                    id: 15,
                    action: () => {
-                       console.log('=');
-                       this.test();
+                       this.calculate();
                    }, name: '=',
                    class: 'operation'
                }
            ];
     }
 
+    // FEATURES:
     searchDot() {
-        const regex = /[^\w\s]/g;
-
-        if (paragraph.search(regex) != -1) {
-            this.setState({
-                isDot: true
-            });
-        } else {
-            this.setState({
-                isDot: false
-            });
+        if(this.state.result != '0') {
+            if (this.state.result.indexOf(".") != -1) {
+                this.setState({
+                    isDot: true
+                });
+            } else {
+                this.setState({
+                    isDot: false
+                });
+            }
         }
+    }
+
+    clearOperation() {
+        this.setState({
+            operations: ''
+        });
     }
 
     sqrt() {
-        let input = parseInt(this.state.result);
+        this.clearOperation();
+        let input = parseFloat(this.state.result);
         this.setState({
-            result: Math.sqrt(input),
             operations: '√'
         });
-        searchDot()
+        this.setOneOperation(Math.sqrt(input).toString());
+    }
+
+    square() {
+        this.clearOperation();
+        let input = parseFloat(this.state.result);
+        this.setState({
+            operations: '(' + input + ')^2'
+        });
+        this.setOneOperation((input * input).toString());
+    }
+
+    cube() {
+        this.clearOperation();
+        let input = parseFloat(this.state.result);
+        this.setState({
+            operations: '(' + input + ')^3'
+        });
+        this.setOneOperation((input * input * input).toString());
+    }
+
+    exponential() {
+        this.clearOperation();
+        let input = parseFloat(this.state.result);
+        this.setState({
+            operations: 'exp(' + input + ')'
+        });
+        this.setOneOperation(Math.exp(input).toString());
     }
 
     setNumber(stringNumber) {
-        let res;
-        if(this.state.result === '0') {
-            res = stringNumber
+        this.clearOperation();
+        if(!this.state.isSecond) {
+            if(this.state.firstNumber == '0') {
+                this.setState({
+                    firstNumber: stringNumber,
+                    result: stringNumber
+                });
+            } else {
+                let res = this.state.firstNumber + stringNumber;
+                this.setState({
+                    firstNumber: res,
+                    result: res
+                });
+            }
         } else {
-            res = this.state.result + stringNumber
+            if(this.state.secondNumber == '0') {
+                this.setState({
+                    secondNumber: stringNumber,
+                    result: stringNumber
+                });
+            } else {
+                let res = this.state.result + stringNumber;
+                this.setState({
+                    secondNumber: res,
+                    result: res
+                });
+            }
+        }
+    }
+
+    countFactorial() {
+        this.clearOperation();
+        const input = parseInt(this.state.result);
+        const result = this.factorial(input);
+        this.setState({
+            operations: this.state.result + '!'
+        });
+        this.setOneOperation(result);
+    }
+
+    factorial(n) {
+       if ((n == 0) || (n == 1))
+          return 1
+       else {
+          var result = (n * this.factorial(n-1));
+          return result
+       }
+    }
+
+    log() {
+        this.clearOperation();
+        const input = parseInt(this.state.result);
+        this.setState({
+            operations: 'log10(' + input + ')'
+        });
+        this.setOneOperation(Math.log10(input).toString());
+    }
+
+    ln() {
+        this.clearOperation();
+        const input = parseInt(this.state.result);
+        this.setState({
+            operations: 'ln(' + input + ')'
+        });
+        this.setOneOperation(Math.log(input).toString());
+    }
+
+    pow10() {
+        this.clearOperation();
+        const input = parseInt(this.state.result);
+        this.setState({
+            operations: '10^(' + input + ')'
+        });
+        this.setOneOperation(Math.pow(10, input).toString());
+    }
+
+    addDot() {
+        this.clearOperation();
+        if (!this.state.isDot && this.state.result != '0') {
+            const input = parseInt(this.state.result);
+            this.setState({
+                operations: '.'
+            });
+            this.setOneOperation((input + ".0").toString());
+        }
+    }
+
+    negative() {
+        let input = parseFloat(this.state.result);
+        this.setOneOperation(-input);
+    }
+
+    pi() {
+        this.clearOperation();
+        if (this.state.isSecond) {
+            this.setState({
+                secondNumber: Math.PI.toString(),
+                result: Math.PI.toString(),
+                operations: 'π'
+            });
+        } else {
+            this.setState({
+                firstNumber: Math.PI.toString(),
+                result: Math.PI.toString(),
+                operations: 'π'
+            });
+        }
+    }
+
+    enterSecond() {
+        this.setState({
+            isSecond: true,
+            secondNumber: '0'
+        });
+        this.setResult('0');
+    }
+
+    setResult(x) {
+        this.setState({
+            result: x
+        });
+    }
+
+    setOneOperation(x) {
+        if(this.state.isSecond) {
+            this.setState({
+                result: x,
+                secondNumber: x
+            });
+        } else {
+            this.setState({
+                result: x,
+                firstNumber: x
+            });
+        }
+    }
+
+    changeOperation(stringOperation) {
+        this.setState({
+            operations: stringOperation,
+            currentOperation: stringOperation
+        });
+    }
+
+    calculate() {
+        let toOperate = false;
+        if(!this.state.currentOperation || this.state.currentOperation == '') {
+            if(this.state.lastOperation && this.state.lastOperation != '') {
+                toOperate = this.state.lastOperation;
+            }
+        } else {
+            if(this.state.currentOperation && this.state.currentOperation != '') {
+                toOperate = this.state.currentOperation;
+            }
+        }
+        switch(toOperate) {
+            case '/': this.divide(); break;
+            case '*': this.multiply(); break;
+            case '-': this.substract(); break;
+            case '+': this.add(); break;
+            case '%': this.mod(); break;
+        }
+    }
+
+    divide() {
+        let inputFirstNumber = parseFloat(this.state.firstNumber);
+        let inputSecondNumber = parseFloat(this.state.secondNumber);
+        let divided = inputFirstNumber / inputSecondNumber;
+        this.finishResult(divided);
+    }
+
+    multiply() {
+        let inputFirstNumber = parseFloat(this.state.firstNumber);
+        let inputSecondNumber = parseFloat(this.state.secondNumber);
+        let multiplied = inputFirstNumber * inputSecondNumber;
+        this.finishResult(multiplied);
+    }
+
+    substract() {
+        let inputFirstNumber = parseFloat(this.state.firstNumber);
+        let inputSecondNumber = parseFloat(this.state.secondNumber);
+        let substracted = inputFirstNumber - inputSecondNumber;
+        this.finishResult(substracted);
+    }
+
+    add() {
+        let inputFirstNumber = parseFloat(this.state.firstNumber);
+        let inputSecondNumber = parseFloat(this.state.secondNumber);
+        let added = inputFirstNumber + inputSecondNumber;
+        this.finishResult(added);
+    }
+
+    mod() {
+        let inputFirstNumber = parseFloat(this.state.firstNumber);
+        let inputSecondNumber = parseFloat(this.state.secondNumber);
+        let mod = inputFirstNumber % inputSecondNumber;
+        this.finishResult(mod);
+    }
+
+    finishResult(x) {
+        if (this.state.currentOperation != '') {
+            this.setState({
+                lastOperation: this.state.currentOperation
+            });
         }
         this.setState({
-            result: res
+            currentOperation: '',
+            operations: '=',
+            isSecond: false
         });
+        this.setState({
+            result: x,
+            firstNumber: x
+        });
+    }
+
+    back() {
+        let str = this.state.result;
+        if (str.length == 1) {
+            str = '0';
+        } else {
+            str = str.substring(0, str.length - 1);
+            if (str.slice(-1) == '.') {
+                str = str.substring(0, str.length - 1);
+            }
+        }
+        if (this.state.isSecond) {
+            this.setState({
+                secondNumber: str,
+                result: str
+            });
+        } else {
+            this.setState({
+                firstNumber: str,
+                result: str
+            });
+        }
     }
 
     getOrientation(){
       if (this.state.screen.width > this.state.screen.height) {
+        this.btnWidth = Dimensions.get('window').width / 6;
+        this.btnHeight = (Dimensions.get('window').height - 24) / 7;
         return 'LANDSCAPE';
       } else {
+        this.btnWidth = Dimensions.get('window').width / 4;
+        this.btnHeight = (Dimensions.get('window').height - 24) / 7;
         return 'PORTRAIT';
       }
     }
 
     getStyle(){
       if (this.getOrientation() === 'LANDSCAPE') {
-        return landscapeStyles;
+        return StyleSheet.create({
+                                container: {
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  margin: 0,
+                                  padding: 0,
+                                  backgroundColor: '#1C1C1C'
+                                },
+
+                                btn: {
+                                  backgroundColor: '#505050',
+                                  width: this.btnWidth - 2,
+                                  height: this.btnHeight - 2,
+                                  textAlign: 'center',
+                                  fontSize: 30,
+                                  color: 'white',
+                                  marginBottom: 2,
+                                  marginRight: 2
+                                },
+
+                                twice: {
+                                  backgroundColor: 'lime',
+                                  backgroundColor: '#505050',
+                                  width: 2 * this.btnWidth - 2,
+                                  height: this.btnHeight - 2,
+                                  textAlign: 'center',
+                                  fontSize: 30,
+                                  color: 'white',
+                                  marginBottom: 2,
+                                  marginRight: 2
+                                },
+
+                                header: {
+                                  width: 6 * this.btnWidth,
+                                  textAlign: 'right',
+                                  paddingRight: 20,
+                                  backgroundColor: '#1C1C1C',
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  height: this.btnHeight,
+                                  fontSize: 30,
+                                  paddingTop: 20
+                                },
+
+                                headerSecond: {
+                                  width: 6 * this.btnWidth - 2,
+                                  textAlign: 'right',
+                                  paddingRight: 40,
+                                  backgroundColor: '#1C1C1C',
+                                  color: 'white',
+                                  height: this.btnHeight - 2,
+                                	fontSize: 18,
+                                	marginBottom: 2,
+                                  marginRight: 2,
+                                  paddingTop: 20,
+                                  opacity: 0.3
+                                },
+
+                                operation: {
+                                  width: this.btnWidth - 2,
+                                  height: this.btnHeight - 2,
+                                  textAlign: 'center',
+                                  fontSize: 30,
+                                	backgroundColor:'#FF9500',
+                                  color:'white',
+                                  marginBottom: 2,
+                                  marginRight: 2
+                                },
+                              });
       } else {
-        return portraitStyles;
+        return StyleSheet.create({
+                                  container: {
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    margin: 0,
+                                    padding: 0,
+                                    backgroundColor: '#1C1C1C'
+                                  },
+
+                                  btn: {
+                                    backgroundColor: '#505050',
+                                    width: this.btnWidth - 2,
+                                    height: this.btnHeight - 2,
+                                    textAlign: 'center',
+                                    fontSize: 30,
+                                    color: 'white',
+                                    marginBottom: 2,
+                                    marginRight: 2
+                                  },
+
+                                  twice: {
+                                    backgroundColor: '#505050',
+                                    width: 2 * this.btnWidth - 2,
+                                    height: this.btnHeight - 2,
+                                    textAlign: 'center',
+                                    fontSize: 40,
+                                    color: 'white',
+                                    marginBottom: 2,
+                                    marginRight: 2
+                                  },
+
+                                  header: {
+                                    width: 4 * this.btnWidth,
+                                    textAlign: 'right',
+                                    paddingRight: 20,
+                                    backgroundColor: '#1C1C1C',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    height: this.btnHeight,
+                                    fontSize: 30,
+                                    paddingTop: 20
+                                  },
+
+                                  headerSecond: {
+                                    width: 4 * this.btnWidth - 2,
+                                    textAlign: 'right',
+                                    paddingRight: 40,
+                                    backgroundColor: '#1C1C1C',
+                                    color: 'white',
+                                    height: this.btnHeight - 2,
+                                    fontSize: 18,
+                                    marginBottom: 2,
+                                    marginRight: 2,
+                                    paddingTop: 20,
+                                    opacity: 0.3
+                                  },
+
+                                  operation: {
+                                    width: this.btnWidth - 2,
+                                    height: this.btnHeight - 2,
+                                    textAlign: 'center',
+                                    fontSize: 30,
+                                    backgroundColor:'#FF9500',
+                                    color:'white',
+                                    marginBottom: 2,
+                                    marginRight: 2
+                                  }
+                              });
       }
     }
 
@@ -349,7 +773,6 @@ class App extends Component {
       } else {
         return this.getPortraitButtons();
       }
-
     }
 
     render() {
@@ -361,164 +784,11 @@ class App extends Component {
             <Text style={this.getStyle().headerSecond}>
                 {this.state.operations}
             </Text>
-                {
-                    this.getButtons()
-                }
+                {this.getButtons()}
         </View>
         );
-      }
+    }
+
+
 }
 export default App;
-
-const btnWidth = Dimensions.get('window').width / 4;
-const btnHeight = (Dimensions.get('window').height - 24) / 7;
-
-const btnWidthLandscape = Dimensions.get('window').width / 6;
-const btnHeightLandscape = (Dimensions.get('window').height - 24) / 7;
-
-
-const portraitStyles = StyleSheet.create({
-  container: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 0,
-    padding: 0,
-    backgroundColor: '#1C1C1C'
-  },
-
-  btn: {
-    backgroundColor: '#505050',
-    width: btnWidth - 2,
-    height: btnHeight - 2,
-    textAlign: 'center',
-    fontSize: 30,
-    color: 'white',
-    marginBottom: 2,
-    marginRight: 2
-  },
-
-  twice: {
-    backgroundColor: 'lime',
-    backgroundColor: '#505050',
-    width: 2 * btnWidth - 2,
-    height: btnHeight - 2,
-    textAlign: 'center',
-    fontSize: 30,
-    color: 'white',
-    marginBottom: 2,
-    marginRight: 2
-  },
-
-  header: {
-  	width: 4 * btnWidth,
-    textAlign: 'right',
-    paddingRight: 20,
-    backgroundColor: '#1C1C1C',
-    color: 'white',
-    fontWeight: 'bold',
-    height: btnHeight,
-    fontSize: 40,
-    paddingTop: 20
-  },
-
-  headerSecond: {
-  	width: 4 * btnWidth - 2,
-    textAlign: 'right',
-    paddingRight: 40,
-    backgroundColor: '#1C1C1C',
-    color: 'white',
-    height: btnHeight - 2,
-  	fontSize: 18,
-  	marginBottom: 2,
-    marginRight: 2,
-    paddingTop: 20,
-    opacity: 0.3
-  },
-
-  operation: {
-    width: btnWidth - 2,
-    height: btnHeight - 2,
-    textAlign: 'center',
-    fontSize: 30,
-  	backgroundColor:'#FF9500',
-    color:'white',
-    marginBottom: 2,
-    marginRight: 2
-  },
-});
-
-const landscapeStyles = StyleSheet.create({
-    container: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: 0,
-      padding: 0,
-      backgroundColor: '#1C1C1C'
-    },
-
-    btn: {
-      backgroundColor: '#505050',
-      width: btnWidthLandscape - 2,
-      height: btnHeightLandscape - 2,
-      textAlign: 'center',
-      fontSize: 30,
-      color: 'white',
-      marginBottom: 2,
-      marginRight: 2
-    },
-
-    twice: {
-      backgroundColor: 'lime',
-      backgroundColor: '#505050',
-      width: 2 * btnWidthLandscape - 2,
-      height: btnHeightLandscape - 2,
-      textAlign: 'center',
-      fontSize: 30,
-      color: 'white',
-      marginBottom: 2,
-      marginRight: 2
-    },
-
-    header: {
-      width: 6 * btnWidthLandscape,
-      textAlign: 'right',
-      paddingRight: 20,
-      backgroundColor: '#1C1C1C',
-      color: 'white',
-      fontWeight: 'bold',
-      height: btnHeightLandscape,
-      fontSize: 30,
-      paddingTop: 20
-    },
-
-    headerSecond: {
-      width: 6 * btnWidthLandscape - 2,
-      textAlign: 'right',
-      paddingRight: 40,
-      backgroundColor: '#1C1C1C',
-      color: 'white',
-      height: btnHeightLandscape - 2,
-      fontSize: 18,
-      marginBottom: 2,
-      marginRight: 2,
-      paddingTop: 20,
-      opacity: 0.3
-    },
-
-    operation: {
-      width: btnWidthLandscape - 2,
-      height: btnHeightLandscape - 2,
-      textAlign: 'center',
-      fontSize: 30,
-      backgroundColor:'#FF9500',
-      color:'white',
-      marginBottom: 2,
-      marginRight: 2
-    }
-})
