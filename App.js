@@ -65,14 +65,7 @@ export default class Myapp extends Component<{}> {
             {
                 id: 10,
                 action: () => {
-                     this.setState({
-                         operations: '',
-                         result: '0',
-                         isDot: false,
-                         currentOperation: '',
-                         secondNumber: '0',
-                         firstNumber: '0'
-                     });
+                     this.clear()
                 },
                 name: 'AC'
             },
@@ -87,7 +80,6 @@ export default class Myapp extends Component<{}> {
             {
                 id: 22,
                 action: () => {
-                    this.enterSecond();
                     this.changeOperation('%');
                 },
                 name: '%',
@@ -103,7 +95,6 @@ export default class Myapp extends Component<{}> {
             {
                 id: 11,
                 action: () => {
-                    this.enterSecond();
                     this.changeOperation('/');
                 },
                 name: '/',
@@ -146,7 +137,6 @@ export default class Myapp extends Component<{}> {
             {
                 id: 12,
                 action: () => {
-                    this.enterSecond();
                     this.changeOperation('*');
                 },
                 name: '*',
@@ -189,7 +179,6 @@ export default class Myapp extends Component<{}> {
             {
                 id: 14,
                 action: () => {
-                    this.enterSecond();
                     this.changeOperation('+');
                 }, name: '+',
                 class: 'operation'
@@ -231,7 +220,6 @@ export default class Myapp extends Component<{}> {
             {
                 id: 13,
                 action: () => {
-                    this.enterSecond();
                     this.changeOperation('-');
                 }, name: '-',
                 class: 'operation'
@@ -277,13 +265,10 @@ export default class Myapp extends Component<{}> {
             this.state = {
                 isVisible : true,
                 screen: Dimensions.get('window'),
-                operations: '',
-                result: '0',
                 isDot: false,
-                firstNumber: '0',
-                isSecond: false,
-                secondNumber: '0',
-                lastOperation: ''
+                expression: '0',
+                operation: '',
+                currentPart: '',
             }
       }
 
@@ -305,298 +290,17 @@ export default class Myapp extends Component<{}> {
 
        // FEATURES:
            searchDot() {
-               if(this.state.result != '0') {
-                   if (this.state.result.indexOf(".") != -1) {
+                const currState = this.state.currentPart.toString();
+               if(currState && currState != '0') {
+                   if (currState.indexOf(".") != -1) {
                        this.setState({
-               isDot: true
+                            isDot: true
                        });
                    } else {
                        this.setState({
-               isDot: false
+                            isDot: false
                        });
                    }
-               }
-           }
-
-           clearOperation() {
-               this.setState({
-                   operations: ''
-               });
-           }
-
-           sqrt() {
-               this.clearOperation();
-               let input = parseFloat(this.state.result);
-               this.setState({
-                   operations: '√'
-               });
-               this.setOneOperation(Math.sqrt(input).toString());
-           }
-
-           square() {
-               this.clearOperation();
-               let input = parseFloat(this.state.result);
-               this.setState({
-                   operations: '(' + input + ')^2'
-               });
-               this.setOneOperation((input * input).toString());
-           }
-
-           cube() {
-               this.clearOperation();
-               let input = parseFloat(this.state.result);
-               this.setState({
-                   operations: '(' + input + ')^3'
-               });
-               this.setOneOperation((input * input * input).toString());
-           }
-
-           exponential() {
-               this.clearOperation();
-               let input = parseFloat(this.state.result);
-               this.setState({
-                   operations: 'exp(' + input + ')'
-               });
-               this.setOneOperation(Math.exp(input).toString());
-           }
-
-           setNumber(stringNumber) {
-               this.clearOperation();
-               if(!this.state.isSecond) {
-                   if(this.state.firstNumber == '0') {
-                       this.setState({
-               firstNumber: stringNumber,
-               result: stringNumber
-                       });
-                   } else {
-                       let res = this.state.firstNumber + stringNumber;
-                       this.setState({
-               firstNumber: res,
-               result: res
-                       });
-                   }
-               } else {
-                   if(this.state.secondNumber == '0') {
-                       this.setState({
-               secondNumber: stringNumber,
-               result: stringNumber
-                       });
-                   } else {
-                       let res = this.state.result + stringNumber;
-                       this.setState({
-               secondNumber: res,
-               result: res
-                       });
-                   }
-               }
-           }
-
-           countFactorial() {
-               this.clearOperation();
-               const input = parseInt(this.state.result);
-               const result = this.factorial(input);
-               this.setState({
-                   operations: this.state.result + '!'
-               });
-               this.setOneOperation(result);
-           }
-
-           factorial(n) {
-              if ((n == 0) || (n == 1))
-                 return 1
-              else {
-                 var result = (n * this.factorial(n-1));
-                 return result
-              }
-           }
-
-           log() {
-               this.clearOperation();
-               const input = parseInt(this.state.result);
-               this.setState({
-                   operations: 'log10(' + input + ')'
-               });
-               this.setOneOperation(Math.log10(input).toString());
-           }
-
-           ln() {
-               this.clearOperation();
-               const input = parseInt(this.state.result);
-               this.setState({
-                   operations: 'ln(' + input + ')'
-               });
-               this.setOneOperation(Math.log(input).toString());
-           }
-
-           pow10() {
-               this.clearOperation();
-               const input = parseInt(this.state.result);
-               this.setState({
-                   operations: '10^(' + input + ')'
-               });
-               this.setOneOperation(Math.pow(10, input).toString());
-           }
-
-           addDot() {
-               this.clearOperation();
-               if (!this.state.isDot && this.state.result != '0') {
-                   const input = parseInt(this.state.result);
-                   this.setState({
-                       operations: '.'
-                   });
-                   this.setOneOperation((input + ".0").toString());
-               }
-           }
-
-           negative() {
-               let input = parseFloat(this.state.result);
-               this.setOneOperation(-input);
-           }
-
-           pi() {
-               this.clearOperation();
-               if (this.state.isSecond) {
-                   this.setState({
-                       secondNumber: Math.PI.toString(),
-                       result: Math.PI.toString(),
-                       operations: 'π'
-                   });
-               } else {
-                   this.setState({
-                       firstNumber: Math.PI.toString(),
-                       result: Math.PI.toString(),
-                       operations: 'π'
-                   });
-               }
-           }
-
-           enterSecond() {
-               this.setState({
-                   isSecond: true,
-                   secondNumber: '0'
-               });
-               this.setResult('0');
-           }
-
-           setResult(x) {
-               this.setState({
-                   result: x
-               });
-           }
-
-           setOneOperation(x) {
-               if(this.state.isSecond) {
-                   this.setState({
-                       result: x,
-                       secondNumber: x
-                   });
-               } else {
-                   this.setState({
-                       result: x,
-                       firstNumber: x
-                   });
-               }
-           }
-
-           changeOperation(stringOperation) {
-               this.setState({
-                   operations: stringOperation,
-                   currentOperation: stringOperation
-               });
-           }
-
-           calculate() {
-               let toOperate = false;
-               if(!this.state.currentOperation || this.state.currentOperation == '') {
-                   if(this.state.lastOperation && this.state.lastOperation != '') {
-                       toOperate = this.state.lastOperation;
-                   }
-               } else {
-                   if(this.state.currentOperation && this.state.currentOperation != '') {
-                       toOperate = this.state.currentOperation;
-                   }
-               }
-               switch(toOperate) {
-                   case '/': this.divide(); break;
-                   case '*': this.multiply(); break;
-                   case '-': this.substract(); break;
-                   case '+': this.add(); break;
-                   case '%': this.mod(); break;
-               }
-           }
-
-           divide() {
-               let inputFirstNumber = parseFloat(this.state.firstNumber);
-               let inputSecondNumber = parseFloat(this.state.secondNumber);
-               let divided = inputFirstNumber / inputSecondNumber;
-               this.finishResult(divided);
-           }
-
-           multiply() {
-               let inputFirstNumber = parseFloat(this.state.firstNumber);
-               let inputSecondNumber = parseFloat(this.state.secondNumber);
-               let multiplied = inputFirstNumber * inputSecondNumber;
-               this.finishResult(multiplied);
-           }
-
-           substract() {
-               let inputFirstNumber = parseFloat(this.state.firstNumber);
-               let inputSecondNumber = parseFloat(this.state.secondNumber);
-               let substracted = inputFirstNumber - inputSecondNumber;
-               this.finishResult(substracted);
-           }
-
-           add() {
-               let inputFirstNumber = parseFloat(this.state.firstNumber);
-               let inputSecondNumber = parseFloat(this.state.secondNumber);
-               let added = inputFirstNumber + inputSecondNumber;
-               this.finishResult(added);
-           }
-
-           mod() {
-               let inputFirstNumber = parseFloat(this.state.firstNumber);
-               let inputSecondNumber = parseFloat(this.state.secondNumber);
-               let mod = inputFirstNumber % inputSecondNumber;
-               this.finishResult(mod);
-           }
-
-           finishResult(x) {
-               if (this.state.currentOperation != '') {
-                   this.setState({
-                       lastOperation: this.state.currentOperation
-                   });
-               }
-               this.setState({
-                   currentOperation: '',
-                   operations: '=',
-                   isSecond: false
-               });
-               this.setState({
-                   result: x,
-                   firstNumber: x
-               });
-           }
-
-           back() {
-               let str = this.state.result;
-               if (str.length == 1) {
-                   str = '0';
-               } else {
-                   str = str.substring(0, str.length - 1);
-                   if (str.slice(-1) == '.') {
-                       str = str.substring(0, str.length - 1);
-                   }
-               }
-               if (this.state.isSecond) {
-                   this.setState({
-                       secondNumber: str,
-                       result: str
-                   });
-               } else {
-                   this.setState({
-                       firstNumber: str,
-                       result: str
-                   });
                }
            }
 
@@ -792,16 +496,285 @@ export default class Myapp extends Component<{}> {
                       (this.state.isVisible === true) ? Splash_Screen : null  
                  }
                     <Text style={this.getStyle().header}>
-                        {this.state.result}
+                        {this.state.expression}
                     </Text>
                     <Text style={this.getStyle().headerSecond}>
-                        {this.state.operations}
+                        {this.state.operation}
                     </Text>
                         {this.getButtons()}
                 </View>
 
                   );  
-        }  
+        }
+
+        setNumber(stringNumber) {
+            if (this.state.expression == '0') {
+                this.setState({
+                    expression: stringNumber,
+                    operation: stringNumber,
+                    currentPart: stringNumber
+                });
+             } else if (this.state.currentPart == '0') {
+                this.setState({
+                    expression: this.state.expression.slice(0, -1) + stringNumber,
+                    operation: stringNumber,
+                    currentPart: this.state.currentPart.slice(0, -1) + stringNumber
+                });
+             } else {
+                this.setState({
+                    expression: this.state.expression + stringNumber,
+                    operation: stringNumber,
+                    currentPart: this.state.currentPart + stringNumber
+                });
+             }
+        }
+
+        changeOperation(stringOperation) {
+            if (!this.state.currentPart == '0') {
+                this.setState({
+                     expression: this.state.expression + ' ' + stringOperation + ' ',
+                     operation: stringOperation,
+                     currentPart: '',
+                     isDot: false
+                });
+            }
+        }
+
+        calculate() {
+            if (this.state.currentPart != '' && !this.isSingleNumber()) {
+                 const result = eval(this.state.expression).toString();
+                 this.setState({
+                    expression: result,
+                    operation: '=',
+                    currentPart: result
+                 });
+                 this.searchDot();
+            }
+        }
+
+        clear() {
+            this.setState({
+                expression: '0',
+                operation: 'AC',
+                currentPart: '0',
+                isDot: false
+            });
+        }
+
+        addDot() {
+            if (!this.state.isDot) {
+                this.setState({
+                    expression: this.state.expression + '.0',
+                    operation: '.',
+                    currentPart: this.state.currentPart + '.0',
+                    isDot: true
+                });
+            }
+        }
+
+        back() {
+            if (this.state.expression != '0') {
+                if (this.state.expression.length > 1) {
+                    const oneCharPrevLast = this.state.expression.slice(-2, -1);
+                    let resultExpression;
+                    let resultCurrentPart;
+                    if (oneCharPrevLast == '.') {
+                       resultExpression = this.state.expression.slice(0, -2);
+                       resultCurrentPart = this.state.currentPart.slice(0, -2);
+                       this.setState({
+                            isDot: false
+                       });
+                    } else if (oneCharPrevLast == ' ') {
+                        resultExpression = this.state.expression.slice(0, -1);
+                        resultCurrentPart = this.findTheLastPart(resultExpression);
+                    } else {
+                        resultExpression = this.state.expression.slice(0, -1);
+                        resultCurrentPart = this.state.currentPart.slice(0, -1);
+                    }
+
+                    this.setState({
+                        expression: resultExpression,
+                        operation: 'del',
+                        currentPart: resultCurrentPart
+                    });
+                } else if (this.state.expression.length == 1) {
+                    this.setState({
+                        expression: '0',
+                        operation: 'del',
+                        currentPart: '0',
+                        isDot: false
+                    });
+                }
+            } else {
+                this.setState({
+                    operation: ''
+                });
+            }
+        }
+
+        findTheLastPart(expression) {
+            const indexOfFirst = expression.lastIndexOf(" ");
+
+            if (indexOfFirst < 0) {
+                return expression;
+            }
+            return expression.slice(indexOfFirst, expression.length);
+        }
+
+        countFactorial() {
+            const expression = parseInt(eval(this.state.expression));
+            const result = this.factorial(expression);
+            this.setState({
+                expression: result,
+                operation: expression + '!',
+                currentPart: result,
+                isDot: false
+            });
+        }
+
+        factorial(n) {
+              if ((n == 0) || (n == 1)) {
+                 return 1
+              }
+
+              return (n * this.factorial(n-1));
+         }
+
+           log() {
+                const input = parseInt(eval(this.state.expression));
+                const result = Math.log10(input).toString();
+
+                this.setState({
+                    expression: result,
+                    operation: 'log(' + input + ')',
+                    currentPart: result
+                });
+
+                this.searchDot();
+           }
+
+           ln() {
+                const input = parseInt(eval(this.state.expression));
+                const result = Math.log(input).toString();
+
+                this.setState({
+                    expression: result,
+                    operation: 'ln(' + input + ')',
+                    currentPart: result
+                });
+
+                this.searchDot();
+           }
+
+           pow10() {
+                const input = parseInt(eval(this.state.expression));
+                const result = Math.pow(10, input).toString();
+
+                this.setState({
+                    expression: result,
+                    operation: '10^' + input + '',
+                    currentPart: result
+                });
+
+                this.searchDot();
+           }
+
+           sqrt() {
+                const input = parseInt(eval(this.state.expression));
+                const result = Math.sqrt(input).toString();
+
+                this.setState({
+                    expression: result,
+                    operation: '√',
+                    currentPart: result
+                });
+
+                this.searchDot();
+           }
+
+           square() {
+                const input = parseInt(eval(this.state.expression));
+                const result = (input * input).toString();
+
+                this.setState({
+                    expression: result,
+                    operation: input + ' * ' + input,
+                    currentPart: result
+                });
+
+                this.searchDot();
+           }
+
+           cube() {
+                const input = parseInt(eval(this.state.expression));
+                const result = (input * input * input).toString();
+
+                this.setState({
+                    expression: result,
+                    operation: input + ' * ' + input + ' * ' + input,
+                    currentPart: result
+                });
+
+                this.searchDot();
+           }
+
+           exponential() {
+                const input = eval(this.state.expression);
+                const result = Math.exp(input).toString();
+
+                this.setState({
+                    expression: result,
+                    operation: 'exp(' + input + ')',
+                    currentPart: result
+                });
+
+                this.searchDot();
+           }
+
+            pi() {
+                const PI = Math.PI.toString();
+                const resultExpression = this.changeExpresionCurrentPart(PI);
+                const resultCurrentPart = PI;
+
+                this.setState({
+                    expression: resultExpression,
+                    operation: 'π',
+                    currentPart: resultCurrentPart,
+                    isDot: true
+                });
+           }
+
+           changeExpresionCurrentPart(stringNewPart) {
+                let expression = this.state.expression;
+                const indexOfLast = expression.lastIndexOf(" ");
+
+                if (indexOfLast < 0) {
+                    return stringNewPart;
+                }
+                return expression.slice(0, indexOfLast).trim() + " " + stringNewPart;
+           }
+
+           negative() {
+                const input = this.state.expression;
+                const result = eval("- (" + input + ")").toString();
+
+                this.setState({
+                    expression: result,
+                    operation: '- / +',
+                    currentPart: result
+                });
+           }
+
+
+            isSingleNumber() {
+                const indexOfFirst = this.state.expression.lastIndexOf(" ");
+
+                if (indexOfFirst >= 0) {
+                    return false;
+                }
+                return true;
+            }
+
     }
 
 
